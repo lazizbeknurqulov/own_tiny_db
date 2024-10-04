@@ -39,3 +39,54 @@ class LRUCache(abc.MutableMapping, Generic[K, V]):
         self.capacity = capacity
         self.cache: OrderedDict[K, V] = OrderedDict()
 
+    @property
+    def lru(self) -> List[K]:
+        return list(self.cache)
+
+    @property
+    def length(self)-> int:
+        return len(self.cache)
+
+    def clear(self) -> None:
+        self.cache.clear()
+
+    def __len__(self) -> int:
+        return self.length
+
+    def __contains__(self, item: object) -> bool:
+        return key in self.cache
+
+    def __setitem__(self, key: K, value: V) -> None:
+        self.set(key, value)
+
+    def __delitem__(self, key: K)-> None:
+        del self.cache[key]
+
+    def __getitem__(self, key) -> V:
+        value = self.get(key)
+        if value is None:
+            raise KeyError(key)
+        return value
+
+    def __iter__(self) -> Iterator[k]:
+        return iter(self.cache)
+
+    def get(self, key: K, default: Optional[D]=None) -> Optional[Union[V, D]]:
+        value = self.cache.get(key)
+        if value is not None:
+            self.cache.move_to_end(key, last=True)
+            return value
+        return default
+
+
+    def set(self, key: K, value: V):
+        if self.cache.get(key):
+            self.cache.move_to_end(key, last=True)
+
+        else:
+            self.cache[key] = value
+            if self.capacity is not None and self.length > self.capacity:
+                self.cache.popitem(last=False)
+
+
+
